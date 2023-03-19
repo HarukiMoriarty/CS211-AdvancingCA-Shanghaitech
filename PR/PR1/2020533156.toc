@@ -1,0 +1,25 @@
+\contentsline {section}{\numberline {1}Paper Information}{3}{section.1}%
+\contentsline {section}{\numberline {2}Paper Intended Solve Problem}{3}{section.2}%
+\contentsline {section}{\numberline {3}Motivation}{3}{section.3}%
+\contentsline {section}{\numberline {4}Solution}{3}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Speculatively Indexed Physically Tagged}{3}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}Method}{3}{subsubsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.2}Accuracy}{3}{subsubsection.4.1.2}%
+\contentsline {subsubsection}{\numberline {4.1.3}Performance \& Disadvantage}{3}{subsubsection.4.1.3}%
+\contentsline {subsection}{\numberline {4.2}Misspeculation Prediction}{3}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Method}{3}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}Accuracy}{4}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}Performance}{4}{subsubsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {4.2.4}Advantage}{4}{subsubsection.4.2.4}%
+\contentsline {subsubsection}{\numberline {4.2.5}Disadvantage}{4}{subsubsection.4.2.5}%
+\contentsline {subsection}{\numberline {4.3}Partial Index Prediction}{4}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Method}{4}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Accuracy}{4}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}Performance}{5}{subsubsection.4.3.3}%
+\contentsline {section}{\numberline {5}Further Discussion}{5}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Way Prediction}{5}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Predictability of Partial Index Bits}{5}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Implications for Instruction Schedulers}{5}{subsection.5.3}%
+\contentsline {section}{\numberline {6}Personal Thinking}{5}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Understanding on why using PC instead of VA in perception}{5}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Apply multi perception on speculation}{5}{subsection.6.2}%

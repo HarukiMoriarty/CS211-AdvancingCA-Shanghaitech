@@ -1,0 +1,118 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{graphicx, wrapfig, palatino, subfigure, multirow, comment}
+\usepackage{enumerate}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage[cm]{fullpage}
+
+\renewcommand\thefigure{R-\arabic{figure}}
+
+\pagestyle{empty}
+\usepackage{setspace} 
+\usepackage{anysize,amsmath,amssymb}
+\usepackage[cm]{fullpage}
+\marginsize{1.0in}{1.0in}{0.8in}{0.8in}
+
+
+
+
+
+
+\begin{document}
+\title{CS211 Advanced Computer Architecture Paper Reading 1}
+\author{Anonymous}
+\date{}
+\maketitle
+
+
+
+\section{Paper Information}
+T. Zheng, H. Zhu and M. Erez, ”SIPT: Speculatively Indexed, Physically Tagged Caches,” 2018 IEEE International Symposium on High Performance Computer Architecture (HPCA), 2018, pp. 118-130, doi: 10.1109/HPCA.2018.00020.
+
+\section{Paper Intended Solve Problem}
+Current processor typically use \textbf{VIPT} cache architecture, which is limited by the size of a virtual page size. This policy will both increase the access latency and cache energy comsumption.\\
+Another policy is \textbf{VIVT} cache architecture, which presents significant complications for cache management and coherance.\\
+The author need to find a suitable policy that with the advantage of \textbf{VIPT}, includes simpism and reliability, but without the disadvantage of suboptimal L1 cache parameters(latency, capacity, and associativity).
+
+\section{Motivation}
+\begin{itemize}
+    \item While both capacity and associativity affect latency, associativity has the greater impact. 
+    \item At some cores, latency has a significant impact and configuration with shortest lantency performs best. But in others, cores with balanced lantency and capacity achieves the best performance.
+\end{itemize}
+
+\section{Solution}
+\subsection{Speculatively Indexed Physically Tagged}
+\subsubsection{Method}
+The simplest variant of \textbf{SIPT}, which assuming that all necessary index bits will remain the same after translation, including those beyond the page granularity. If all speculated bits indeed are the same, then the fast access complete. If not, the cache request must be repeated with the correct index from PA, which is quite slow.
+\subsubsection{Accuracy}
+Normolly, with reasonable configuration of L1 cache, processor only require 1-3 index bits beyond the page granularity, which result in a more higher correct prediction rate. If only a single speculative index is needed, in most cases the processor can have majority of fast accessed.
+\subsubsection{Performance \& Disadvantage}
+Naive \textbf{SIPT} has a high misspeculation rate, which result in significant gaps on total cache energy with ideal situation.
+
+\subsection{Misspeculation Prediction}
+\subsubsection{Method}
+A small PC-based Perceptron predictor which make a speculate/no-speculate binary decision early in the pipline to hide cache visit lantency. The predictor has a global history register $x_{1}x_{2}\cdots x_{h}$ that tracks the last $h$ speculation outcomes as ones and zeros, it also has 64 entries each being a perceptron of $h+ 1$ weights $w_{0}w_{1}\cdots w_{h}$. Perceptron calculates a prediction by performing a dot product of the history and the weights of a specific entry in the table plus a learned bias: $y = w_{0} + [x_{1}x_{2}\cdots x_{h}]\cdot[w_{1}\cdots w_{h}]$.\\
+If $y$ is positive, we predict the index will not change and will continue with a fast access using the speculative index. If $y$ is negative we bypass speculation and wait for the physical address before accessing the cache.\\
+If the speculated bits are unchanged bt translation but the predictor chooses bypass, an opportunity for fast access was squandered. If the speculated bits are changed by translation and the predictor chooses to speculate, an extra access is generated.
+\subsubsection{Accuracy}
+The perceptron predictor achieves more than 90\% accuracy in most situations, also these parameters of the perception do not show strong sensitivity to experiments.
+\subsubsection{Performance}
+The predictor practically eliminates extra accesses due to \textbf{SIPT} and thus saves significant energy.
+\subsubsection{Advantage}
+\begin{itemize}
+    \item Only use PC, the prediction can be overlapped with other pipline stages. 
+    \item The predictor introduces no extra lantency and only negligible area and energy overheads.
+\end{itemize}
+\subsubsection{Disadvantage}
+\begin{itemize}
+    \item Fails to reduce the extra latency from slow accesses and hence cannot improve performance.
+\end{itemize}
+
+\subsection{Partial Index Prediction}
+\subsubsection{Method}
+In the context of \textbf{SIPT}, predicting values of multiple speculative tag bits is doable because of spatial locality in memory address mapping. As linux manages free pages use the buddy algorithm, it usually breaks large memory groups to satisfy bursts of memory allocation requests, which will lead to a significant amount of contiguous physical pages being mapped to a contiguous virtual address space. It means that for a range of contiguous address, the delta between a virtual address and its corresponding physical address is the same. Partial Index Prediction use \textbf{index delta buffer(IDB)} to predict these delta between VA to PA, it is a PC-indexed table with each entry storing a index delta. It additionally update the expected delta, which remains stable as long as the same regions are accessed.\\
+First, queried the perception predictor, if it predicts to speculate, the speculative index is used, if it predicts to bypass speculation, the IDB is queried and its predicted index bit values are used to access the cache with a speculative index.\\
+The first case is correctly-speculated fast access by the bypass predictor in which case the IDB is not accessed.\\
+The second case is bypass-prediction and for which the IDB predicted the correct speculative index bits.\\
+The remaining accesses are slow and generate extra L1 accesses.
+\subsubsection{Accuracy}
+When only a single bit value needs to be predicted, over 90\% of all accesses are fast accesses. With 2 and 3 speculative index bits, the combined predictor successfully convert many slow accesses into fast ones.
+\subsubsection{Performance}
+In single core, the trend that \textbf{SIPT} with combined speculation bypass and IDB prediction yield speedup and energy saving very close to the ideal cache configuration.\\
+While in multicore, the average IPC improvement is 8.1\%, which is slightly better than with a single core.
+
+
+\section{Further Discussion}
+\subsection{Way Prediction}
+Way prediction and \textbf{SIPT} are complementary, when applied to the baseline cache, achieves 89\% accuracy and reduces cache energy by 24\% on average. As associativity reduced, the way prediction accuracy increases to 97.3\% on average, and there is only a 0.3\% performance drop compared to SIPT alone. Also it saves 2.2\% additional cache energy.
+\subsection{Predictability of Partial Index Bits}
+Running with fragmented physical memory or disabling THP does degrade the behavior of \textbf{SIPT}, but not significant. \textbf{SIPT} benefits from contiguous memory mapping but does not solely rely on it. Using extremely fragmented memmory or disabling THP has limited impact.
+\subsection{Implications for Instruction Schedulers}
+\textbf{SIPT} is very accurate and can use existing speculative-scheduling approaches to recover from rare misprediction.
+
+\section{Personal Thinking}
+\subsection{Understanding on why using PC instead of VA in perception}
+While reading the perception part, it is common to have doubts that why choose PC as the input, since the same PC can read/write different address, although choosing PC means the perception stage can running with the piplines at the same time. My personal understanding is, the same PC reading different address often means a situation, where the PC is in a loop and the addresses are likely to be in the same page. As the page is 4KiB or even larger, the speculated bits of same PC of different VA are likely to be the same.
+\subsection{Apply multi perception on speculation}
+Since the current solution of this article is, the perception is designed to decide whether it should speculate or not, the IDB is designed to caculate what actually value is of the speculated bits.\\
+As the IDB may cause more overhead, additonal latency and energy ineffiency, I want to apply multi perception on speculation. Instead of using IDB to get the actual value, I directly use more perceptions(or multi-label perception) to speculate bits.\\
+The shortage of this try might be as follows, first, due to the high dimension of the perception, it will take a more long time to get a stable weights with high accuracy; second, it's stabilization might not as well as the \textbf{Partial Index Prediction}, since different VAs with same gap can perform different PAs' features on the multi-perception.\\
+The advantage is obvious since this multi-perception implementation can be realized more easily on hardware, more energy effient, more shorter lantency and more less overhead.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
